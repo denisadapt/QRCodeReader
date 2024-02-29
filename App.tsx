@@ -54,22 +54,33 @@ function Section({children, title}: SectionProps): React.JSX.Element {
 }
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {hasPermission, requestPermission} = useCameraPermission();
-  const device = useCameraDevice('back');
-  const [qrData, setQrData] = React.useState<string|undefined>(undefined);
-  const codeScanner = useCodeScanner({
-    codeTypes: ['qr', 'ean-13'],
-    onCodeScanned: (codes) => {
-      if (codes.length === 0) return;
-      const code = codes[0];
-      setQrData(code.value);
-      console.log(code.value);
-      console.log(qrData);
-      console.log(`Scanned ${codes.length} codes!`);
-    },
-  });
+    const isDarkMode = useColorScheme() === 'dark';
+    const {hasPermission, requestPermission} = useCameraPermission();
+    const device = useCameraDevice('back');
+    const [qrData, setQrData] = React.useState<string|undefined>(undefined);
+  
+    // Use useEffect to handle permission request logic
+    React.useEffect(() => {
+      async function handlePermission() {
+        if (!hasPermission) {
+          await requestPermission();
+        }
+      }
+  
+      handlePermission();
+    }, [hasPermission, requestPermission]); // Dependencies
+  
+    const codeScanner = useCodeScanner({
+      codeTypes: ['qr', 'ean-13'],
+      onCodeScanned: (codes) => {
+        if (codes.length === 0) return;
+        const code = codes[0];
+        setQrData(code.value);
+        console.log(code.value);
+        console.log(qrData);
+        console.log(`Scanned ${codes.length} codes!`);
+      },
+    });
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
